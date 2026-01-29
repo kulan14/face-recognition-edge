@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>进阶A：实时摄像头人脸检测</title>
+
+  <style>
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Arial;
+      margin: 20px;
+      line-height: 1.5;
+    }
+    h2 { margin: 0 0 8px; }
+    .muted { color: #666; font-size: 14px; }
+    .row {
+      display: flex;
+      gap: 16px;
+      align-items: flex-start;
+      flex-wrap: wrap;
+      margin-top: 12px;
+    }
+    .panel {
+      min-width: 320px;
+      max-width: 420px;
+      padding: 14px;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      background: #fafafa;
+    }
+    .kv { margin: 10px 0; }
+    button {
+      padding: 8px 12px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+      background: #f3f3f3;
+      cursor: pointer;
+      margin-right: 6px;
+      margin-bottom: 6px;
+    }
+    input {
+      padding: 7px 10px;
+      border-radius: 10px;
+      border: 1px solid #ddd;
+    }
+    pre {
+      white-space: pre-wrap;
+      word-break: break-word;
+      background: #fff;
+      border: 1px solid #eee;
+      border-radius: 10px;
+      padding: 10px;
+      max-height: 240px;
+      overflow: auto;
+    }
+    .ok { color: #0a7; }
+    .bad { color: #c33; }
+
+    .stage {
+      position: relative;
+      width: 640px;
+      max-width: 92vw;
+    }
+    video {
+      width: 100%;
+      height: auto;
+      border: 1px solid #ddd;
+      border-radius: 12px;
+      display: block;
+    }
+    canvas {
+      position: absolute;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: auto;
+      pointer-events: none;
+    }
+    code { background:#f2f2f2; padding: 2px 6px; border-radius: 6px; }
+  </style>
+</head>
+
+<body>
+  <h2>进阶A：实时摄像头人脸检测（前端可视化）</h2>
+  <div class="muted">
+    说明：前端打开摄像头，周期性截帧上传到后端 <code>/detect</code>，并在画面上实时绘制人脸框。<br />
+    需要后端已通过 <code>kubectl port-forward</code> 暴露到 <code>http://localhost:8000</code>。
+  </div>
+
+  <div class="row">
+    <div class="panel">
+      <div class="kv">
+        <div class="muted">后端 API Base URL：</div>
+        <input id="baseUrl" value="http://localhost:8000" style="width: 100%;" />
+      </div>
+
+      <div class="kv">
+        <button id="btnStartCam">Start Camera</button>
+        <button id="btnStopCam">Stop</button>
+        <button id="btnHealth">Health</button>
+        <button id="btnClear">Clear</button>
+      </div>
+
+      <div class="kv muted">
+        检测间隔(ms)：
+        <input id="intervalMs" value="400" style="width: 90px;" />
+        <label style="margin-left:10px;">
+          <input id="mirror" type="checkbox" checked />
+          镜像（自拍）
+        </label>
+      </div>
+
+      <div class="kv">
+        <strong>Status：</strong>
+        <span id="status" class="muted">idle</span>
+      </div>
+
+      <div class="kv">
+        <div class="muted">输出（后端 JSON）：</div>
+        <pre id="output" class="muted">等待操作…</pre>
+      </div>
+
+      <div class="muted">
+        小提示：如果框左右反了，取消勾选“镜像”；如果电脑卡，把间隔改到 800 或 1000。
+      </div>
+    </div>
+
+    <div class="stage">
+      <video id="video" autoplay playsinline></video>
+      <canvas id="overlay"></canvas>
+    </div>
+  </div>
+
+  <script src="./app.js"></script>
+</body>
+</html>

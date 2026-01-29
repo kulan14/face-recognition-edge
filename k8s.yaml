@@ -1,0 +1,59 @@
+﻿apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: face-detection-pvc
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 1Gi
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: face-api
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: face-api
+  template:
+    metadata:
+      labels:
+        app: face-api
+    spec:
+      containers:
+        - name: face-api
+          image: docker.io/library/face-api:1.3
+          imagePullPolicy: IfNotPresent
+          ports:
+            - containerPort: 8000
+          env:
+            - name: DB_PATH
+              value: /data/face_detection.db
+          volumeMounts:
+            - name: data-volume
+              mountPath: /data
+          readinessProbe:
+            httpGet:
+              path: /health
+              port: 8000
+            initialDelaySeconds: 3
+            periodSeconds: 5
+      volumes:
+        - name: data-volume
+          persistentVolumeClaim:
+            claimName: face-detection-pvc
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: face-api-svc
+spec:
+  selector:
+    app: face-api
+  ports:
+    - port: 8000
+      targetPort: 8000
+  type: ClusterIP
